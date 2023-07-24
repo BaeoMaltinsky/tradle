@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import React, {
   useCallback,
   useEffect,
@@ -24,9 +23,14 @@ import { SettingsData } from "../hooks/useSettings";
 import { useMode } from "../hooks/useMode";
 import { useCountry } from "../hooks/useCountry";
 import axios from "axios";
+import { useUrlHashDate } from "../hooks/useUrlHashDate";
 
-function getDayString() {
-  return DateTime.now().toFormat("yyyy-MM-dd");
+function useDayString() {
+  const hashDate = useUrlHashDate();
+  return useMemo(() => {
+    const date = hashDate ?? new Date();
+    return date.toISOString().split("T")[0];
+  }, [hashDate]);
 }
 
 const MAX_TRY_COUNT = 6;
@@ -37,7 +41,7 @@ interface GameProps {
 
 export function Game({ settingsData }: GameProps) {
   const { t, i18n } = useTranslation();
-  const dayString = useMemo(getDayString, []);
+  const dayString = useDayString();
   const isAprilFools = dayString === "2022-04-01";
 
   const countryInputRef = useRef<HTMLInputElement>(null);
@@ -285,9 +289,32 @@ export function Game({ settingsData }: GameProps) {
               >
                 🌍 {t("guess")}
               </button> */}
-              <div className="text-left">
+              <div className="text-left navButtons">
+                <button
+                  className="my-2 inline-block bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded items-center"
+                  onClick={() => {
+                    const prevDate = new Date(dayString);
+                    prevDate.setDate(prevDate.getDate() - 1);
+
+                    window.location.hash = prevDate.toISOString().split("T")[0];
+                  }}
+                  type="button"
+                >
+                  Previous
+                </button>
                 <button className="my-2 inline-block justify-end bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded items-center">
                   {isAprilFools ? "🪄" : "🌍"} <span>Guess</span>
+                </button>
+                <button
+                  className="my-2 inline-block justify-end bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded items-center"
+                  onClick={() => {
+                    const nextDate = new Date(dayString);
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    window.location.hash = nextDate.toISOString().split("T")[0];
+                  }}
+                  type="button"
+                >
+                  Next
                 </button>
               </div>
             </div>
